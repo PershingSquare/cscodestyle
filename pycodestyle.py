@@ -95,7 +95,7 @@ except ImportError:
 
 PROJECT_CONFIG = ('setup.cfg', 'tox.ini')
 TESTSUITE_PATH = os.path.join(os.path.dirname(__file__), 'testsuite')
-MAX_LINE_LENGTH = 79
+MAX_LINE_LENGTH = 80
 # Number of blank lines between various code parts.
 BLANK_LINES_CONFIG = {
     # Top level class and function.
@@ -110,15 +110,15 @@ REPORT_FORMAT = {
 }
 
 PyCF_ONLY_AST = 1024
-SINGLETONS = frozenset(['False', 'None', 'True'])
+SINGLETONS = frozenset(['False', 'None', 'True', 'true', 'false', 'NULL', 'null'])
 KEYWORDS = frozenset(keyword.kwlist + ['print', 'async']) - SINGLETONS
 UNARY_OPERATORS = frozenset(['>>', '**', '*', '+', '-'])
-ARITHMETIC_OP = frozenset(['**', '*', '/', '//', '+', '-'])
+ARITHMETIC_OP = frozenset(['**', '*', '/', '+', '-'])
 WS_OPTIONAL_OPERATORS = ARITHMETIC_OP.union(['^', '&', '|', '<<', '>>', '%'])
 # Warn for -> function annotation operator in py3.5+ (issue 803)
 FUNCTION_RETURN_ANNOTATION_OP = ['->'] if sys.version_info >= (3, 5) else []
 WS_NEEDED_OPERATORS = frozenset([
-    '**=', '*=', '/=', '//=', '+=', '-=', '!=', '<>', '<', '>',
+    '**=', '*=', '/=', '//=', '+=', '-=', '!=', '<>',
     '%=', '^=', '&=', '|=', '==', '<=', '>=', '<<=', '>>=', '=',
     'and', 'in', 'is', 'or'] +
     FUNCTION_RETURN_ANNOTATION_OP)
@@ -480,7 +480,7 @@ def missing_whitespace_after_import_keyword(logical_line):
 
 @register_check
 def missing_whitespace(logical_line):
-    r"""Each comma, semicolon or colon should be followed by whitespace.
+    r"""Each comma or colon should be followed by whitespace.
 
     Okay: [a, b]
     Okay: (3,)
@@ -495,7 +495,7 @@ def missing_whitespace(logical_line):
     line = logical_line
     for index in range(len(line) - 1):
         char = line[index]
-        if char in ',;:' and line[index + 1] not in WHITESPACE:
+        if char in ',:' and line[index + 1] not in WHITESPACE:
             before = line[:index]
             if char == ':' and before.count('[') > before.count(']') and \
                     before.rfind('{') < before.rfind('['):
@@ -1011,13 +1011,13 @@ def whitespace_before_comment(logical_line, tokens):
                     yield (prev_end,
                            "E261 at least two spaces before inline comment")
             symbol, sp, comment = text.partition(' ')
-            bad_prefix = symbol not in '#:' and (symbol.lstrip('#')[:1] or '#')
+            bad_prefix = symbol not in '//:' and (symbol.lstrip('//')[:1] or '//')
             if inline_comment:
                 if bad_prefix or comment[:1] in WHITESPACE:
-                    yield start, "E262 inline comment should start with '# '"
+                    yield start, "E262 inline comment should start with '// '"
             elif bad_prefix and (bad_prefix != '!' or start[0] > 1):
-                if bad_prefix != '#':
-                    yield start, "E265 block comment should start with '# '"
+                if bad_prefix != '/*':
+                    yield start, "E265 block comment should start with '/* '"
                 elif comment:
                     yield start, "E266 too many leading '#' for block comment"
         elif token_type != tokenize.NL:
